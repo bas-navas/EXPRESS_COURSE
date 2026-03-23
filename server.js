@@ -143,6 +143,36 @@ app.post('/users', (req, res) => {
     })
 })
 
+app.put('/users/:id', (req, res) => {
+    const id = Number(req.params.id)
+    const { name, age } = req.body
+
+    db.query('UPDATE users SET name = ?, age = ? WHERE id = ?', [name, age, id], (err, result) => {
+        if (result.affectedRows === 0) {
+            res.json({ message: 'ไม่พบ user' })
+            return
+        } else {
+            res.json({ id, name, age })
+        }
+    })
+})
+
+app.delete('/users/:id', (req, res) => {
+    const id = Number(req.params.id)
+
+    db.query('DELETE FROM users WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            res.json({ message: 'เกิดข้อผิดพลาด' })
+            return
+        }
+        if (result.affectedRows === 0) {
+            res.json({ message: 'ไม่พบ user' })
+            return
+        }
+        res.json({ message: 'ลบสำเร็จ' })
+    })
+})
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
