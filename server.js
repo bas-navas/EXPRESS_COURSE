@@ -1,6 +1,7 @@
+require('dotenv').config() 
 const express = require('express')
 const app = express()
-const port = 3000
+const port = process.env.PORT
 const myMiddleware = require('./middleware/myMiddleware')
 
 //Middleware ที่แสดงข้อมูลทุกครั้งที่มี Request เข้ามา
