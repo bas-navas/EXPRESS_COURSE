@@ -1,30 +1,16 @@
 const express = require('express')
-const db = require('./db')
 const app = express()
 const port = 3000
-
-function CheckAuth(req, res, next) {
-    const auth = req.headers.authorization
-
-    if (auth === 'secret123') {
-        next()
-    } else {
-        res.json({ message: 'ไม่มีสิทธิ์เข้าถึง' })
-    }
-}
+const myMiddleware = require('./middleware/myMiddleware')
 
 //Middleware ที่แสดงข้อมูลทุกครั้งที่มี Request เข้ามา
-function myMiddleware(req, res, next) {
-    let date = new Date().toLocaleDateString()
-    console.log(`[${date}] ${req.method} ${req.path}`)
-    next()   // ← โอเค ไปต่อได้
-}
 
 // Middleware
 app.use(express.json())
 app.use(myMiddleware)
 
 // ── แบบเก่า (array) ──────────────────────
+
 // ข้อมูลจำลอง เก็บไว้ในตัวแปรก่อน
 // let users = [
 //     { id: 1, name: "Bas", age: 25 },
@@ -105,74 +91,8 @@ app.use(myMiddleware)
 
 // ── แบบใหม่ (MySQL) ──────────────────────
 
-app.get('/users', (req, res) => {
-    db.query('SELECT * FROM users', (err, result) => {
-        if (err) {
-            res.json({ message: 'เกิดข้อผิดพลาด' })
-            return
-        }
-        res.json(result)
-    })
-})
-
-app.get('/users/:id', (req, res) => {
-    const id = req.params.id
-    db.query('SELECT * FROM users WHERE id = ?', [id], (err, result) => {
-        if (err) {
-            res.json({ message: 'เกิดข้อผิดพลาด' })
-            return
-        } else {
-            res.json(result[0])
-        }
-    })
-})
-
-app.post('/users', (req, res) => {
-    const { name, age } = req.body
-    db.query('INSERT INTO users (name,age) VALUES (?,?)', [name, age], (err, result) => {
-        if (err) {
-            res.json({ message: 'เกิดข้อผิดพลาด' })
-            return
-        } else {
-            res.json({
-                id: result.insertId,
-                name: name,
-                age: age
-            })
-        }
-    })
-})
-
-app.put('/users/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const { name, age } = req.body
-
-    db.query('UPDATE users SET name = ?, age = ? WHERE id = ?', [name, age, id], (err, result) => {
-        if (result.affectedRows === 0) {
-            res.json({ message: 'ไม่พบ user' })
-            return
-        } else {
-            res.json({ id, name, age })
-        }
-    })
-})
-
-app.delete('/users/:id', (req, res) => {
-    const id = Number(req.params.id)
-
-    db.query('DELETE FROM users WHERE id = ?', [id], (err, result) => {
-        if (err) {
-            res.json({ message: 'เกิดข้อผิดพลาด' })
-            return
-        }
-        if (result.affectedRows === 0) {
-            res.json({ message: 'ไม่พบ user' })
-            return
-        }
-        res.json({ message: 'ลบสำเร็จ' })
-    })
-})
-
+const usersRouter = require('./routes/users')
+app.use('/users', usersRouter)
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
